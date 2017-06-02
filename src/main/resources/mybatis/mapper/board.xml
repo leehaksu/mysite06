@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="board">
+	<select id="getsize" resultType="boardvo">
+	<![CDATA[
+	select count(*) from board;
+	]]>
+	</select>
+	<select id="getList" resultType="boardvo" parameterType="int">
+	<![CDATA[
+	select a.no,a.title,a.hit, b.name as writer, date_format(a.regDate,'%Y-%m-%d %T') as regDate,a.user_no,a.depth from board as a ,user as b  where a.user_no=b.no order by a.group_no DESC, a.order_no ASC limit #{page},5;
+	]]>
+	</select>
+	<select id="get" resultType="boardvo" parameterType="long">
+	select group_no,order_no from board where no=#{no};
+	</select>
+	<insert id="insert" parameterType="boardvo">
+	insert into board values(null,#{title},#{content},now(),0,
+	<choose>
+		<when test="depth==0">
+		(select ifnull(max(group_no),0)+1 from board a),
+		</when>
+		<otherwise>
+		#{group_no},
+		</otherwise>
+	</choose>
+	#{order_no},#{depth},#{user_no});
+	</insert>
+	<update id="updateOrder" parameterType="MAP">
+	<![CDATA[
+	update board set order_no = order_no + 1 where group_no = #{group_no} and order_no > #{order_no} ;
+	]]>
+	</update>
+	<update id="updateHit" parameterType="long">
+	<![CDATA[
+	update board set hit=hit+1 where no=#{no};
+	]]>
+	</update>
+	<update id="update" parameterType="MAP">
+	<![CDATA[
+	update board set title=#{title}, content=#{content}, regDate=now() where no=#{no};
+	]]>
+	</update>
+	<select id="select" resultType="boardvo" parameterType="int">
+	<![CDATA[
+	select title,content,group_no,order_no from board where no=#{no};
+	]]>
+	</select>
+	<delete id="delete" parameterType="long">
+	<![CDATA[
+	delete from board where no=#{no};
+	]]>
+	</delete>
+</mapper>
